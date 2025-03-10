@@ -1,3 +1,6 @@
+github-private-key: "Get-Content $env:USERPROFILE/.ssh/id_rsa"
+gcp-service-key: "service-key.json"
+
 resources:
   - name: main
     type: git
@@ -64,7 +67,9 @@ jobs:
       - task: build-image
         privileged: true
         file: main/ci/tasks/build-pipeline-image.yml
+        input_mapping:
+          repo: main
       - put: google-artifact-registry
         params:
           image: image/image.tar
-          additional_tags: ["latest", ((git_sha))]
+          additional_tags: new-image-info/git-sha
