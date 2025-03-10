@@ -54,8 +54,8 @@ jobs:
           image_resource:
             type: docker-image
             source:
-              repository: python
-              tag: 3.11
+              repository: node
+              tag: 18-alpine
           inputs:
             - name: pull-request
               path: main
