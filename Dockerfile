@@ -1,6 +1,9 @@
 # Use an official lightweight Node.js image as the base image
 FROM node:18-alpine
 
+# Upgrade npm to a version that fixes CVE-2024-21538 (at least 7.0.5)
+RUN npm install -g npm@7.0.5
+
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -10,9 +13,6 @@ RUN npm install --production
 
 # Copy the rest of the application source code into the container
 COPY . .
-
-# (Optional) Build the application if needed
-# RUN npm run build
 
 # Expose the port your app runs on (if applicable)
 EXPOSE 3000
