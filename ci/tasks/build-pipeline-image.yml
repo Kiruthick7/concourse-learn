@@ -9,7 +9,7 @@ inputs:
 outputs:
   - name: image
 params:
-  CONTEXT: repo/ci
+  CONTEXT: repo/ci/pipeline
   DOCKERFILE: pipeline
 run:
   path: build
