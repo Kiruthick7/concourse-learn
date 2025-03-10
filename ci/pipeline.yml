@@ -109,3 +109,5 @@ jobs:
         params:
           image: image/image.tar
           additional_tags: new-image-info/git-sha
+      - task: update-pipeline-json
+        file: main/ci/tasks/update-pipeline-json.yml
