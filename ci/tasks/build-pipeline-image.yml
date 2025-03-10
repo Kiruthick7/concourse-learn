@@ -9,6 +9,6 @@ inputs:
 outputs:
   - name: image
 params:
-  CONTEXT: repo/ci/pipeline
+  CONTEXT: repo/ci
 run:
   path: build
