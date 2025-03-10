@@ -1,0 +1,97 @@
+resources:
+  - name: concourse-learn
+    type: git
+    source:
+      uri: git@github.hy-vee.cloud:Kiruthick-B/concourse-learn.git
+      branch: main
+      paths: ["Dockerfile", "src/**"]
+      private_key: ((git-private-key))
+
+  - name: artifact-registry
+    type: registry-image
+    source:
+      repository: asia-south1-docker.pkg.dev/symbolic-app-451410-m7/concourse-learn
+      username: _json_key
+      password: ((gcp-service-key))
+
+jobs:
+  - name: build-and-push
+    plan:
+      - get: concourse-learn
+        trigger: true
+
+      - task: fix-ssh-key-permissions
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: { repository: alpine, tag: latest }
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                chmod 600 /root/.ssh/id_ed25519
+                ssh -T git@github.hy-vee.cloud
+
+      - task: setup-gcp-auth
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: { repository: google/cloud-sdk, tag: latest }
+          outputs:
+            - name: gcp-auth
+          params:
+            GCP_SERVICE_KEY: ((gcp-service-key))
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                echo "$GCP_SERVICE_KEY" > gcp-auth/key.json
+                gcloud auth activate-service-account --key-file=gcp-auth/key.json
+                gcloud auth configure-docker asia-south1-docker.pkg.dev
+
+      - task: build
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: { repository: node, tag: 18 }
+          inputs:
+            - name: concourse-learn
+          outputs:
+            - name: build-output
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd concourse-learn
+                npm install
+                npm run build
+
+      - task: dockerize
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: { repository: docker, tag: latest }
+          inputs:
+            - name: concourse-learn
+            - name: gcp-auth # Ensure GCP authentication is set
+          outputs:
+            - name: image
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                cd concourse-learn
+                docker build -t asia-south1-docker.pkg.dev/symbolic-app-451410-m7/concourse-learn/concourse-learn:latest .
+                docker save -o image/image.tar asia-south1-docker.pkg.dev/symbolic-app-451410-m7/concourse-learn/concourse-learn:latest
+
+      - put: artifact-registry
+        params:
+          image: image/image.tar # ✅ Corrected syntax
