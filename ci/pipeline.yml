@@ -1,6 +1,3 @@
-github-private-key: "Get-Content $env:USERPROFILE/.ssh/id_rsa"
-gcp-service-key: "service-key.json"
-
 resources:
   - name: main
     type: git
@@ -10,6 +7,8 @@ resources:
       uri: git@github.com:Kiruthick7/concourse-learn.git
       branch: main
       private_key: ((github-private-key))
+      paths:
+        - main
 
   - name: google-artifact-registry
     type: registry-image
