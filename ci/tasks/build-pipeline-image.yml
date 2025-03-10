@@ -10,5 +10,6 @@ outputs:
   - name: image
 params:
   CONTEXT: repo/ci
+  DOCKERFILE: pipeline
 run:
   path: build
