@@ -1,15 +1,2 @@
-organization: pharmacy
+organization: Kiruthick7
 repository: concourse-learn
-
-soda_health_function_zip_name: soda_health_sftp_function.zip
-soda_health_function_name: soda-health-function
-soda_health_function_folder: cloud_functions
-insights_function_zip_name: insights-function.zip
-insights_function_name: insights-function
-insights_function_folder: insights_functions
-gcloud_project_id:
-  dev: hy-vee-soda-health-dev
-  prod: hy-vee-soda-health-prod
-gcloud_bucket:
-  dev: soda-health-bucket-dev
-  prod: soda-health-bucket-prod

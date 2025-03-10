@@ -1,3 +1,10 @@
+resource_types:
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: teliaoss/github-pr-resource
+      tag: v0.23.0
+
 resources:
   - name: main
     type: git
@@ -5,22 +12,52 @@ resources:
     check_every: 24h
     source:
       uri: git@github.com:Kiruthick7/concourse-learn.git
+      private_key: ((github_private_key))
       branch: main
-      private_key: ((github-private-key))
+
+  - name: pull-request
+    type: pull-request
+    icon: github
+    check_every: 24h
+    source:
+      repository: ((organization))/((repository))
+      access_token: ((gthb_access_token))
+
+  - name: pull-request-status
+    type: pull-request
+    check_every: 24h
+    source:
+      access_token: ((gthb_access_token))
+      repository: ((organization))/((repository))
 
   - name: google-artifact-registry
     type: registry-image
     source:
-      repository: asia-south1-docker.pkg.dev/symbolic-app-451410-m7/concourse-learn-docker
+      repository: asia-south1-docker.pkg.dev/symbolic-app-451410-m7/concourse-learn-docker/pipeline
       username: _json_key
-      password: ((gcp-service-key))
+      password: ((gcp_service_key))
 
 jobs:
-  - name: pr-verify
-    public: true
+  - name: set-pipeline
+    build_log_retention:
+      builds: 45
     plan:
       - get: main
         trigger: true
+      - set_pipeline: ((repository))
+        file: main/ci/pipeline.yml
+        var_files:
+          - main/ci/pipeline-vars.yml
+
+  - name: pr-verify
+    public: true
+    plan:
+      - get: pull-request
+        trigger: true
+      - put: pull-request-status
+        params:
+          path: pull-request
+          status: pending
       - task: run-tests
         privileged: true
         config:
@@ -28,27 +65,41 @@ jobs:
           image_resource:
             type: docker-image
             source:
-              repository: node
-              tag: 18
+              repository: python
+              tag: 3.11
           inputs:
-            - name: main
+            - name: pull-request
+              path: main
+          outputs:
+            - name: requirements
+              path: main/requirements
           run:
             path: sh
+            dir: main
             args:
               - -exc
               - |
-                cd main
+                ls
+                cd concourse-learn/
                 npm install
                 npm run build
+          on_success:
+            put: pull-request-status
+            params:
+              path: pull-request
+              status: success
+          on_failure:
+            put: pull-request-status
+            params:
+              path: pull-request
+              status: failure
 
-  - name: build-and-push-image
+  - name: deploy-pipeline-dev
     plan:
       - get: main
         trigger: true
       - task: tag-pipeline
         file: main/ci/tasks/get-tag.yml
-      - task: generate-dockerfile
-        file: main/ci/tasks/generate-dockerfile.yml
       - task: build-image
         privileged: true
         file: main/ci/tasks/build-pipeline-image.yml
@@ -57,4 +108,4 @@ jobs:
       - put: google-artifact-registry
         params:
           image: image/image.tar
-          additional_tags: latest, $(cat new-image-info/git-sha)
+          additional_tags: new-image-info/git-sha
