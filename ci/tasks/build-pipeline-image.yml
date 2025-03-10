@@ -9,6 +9,6 @@ inputs:
 outputs:
   - name: image
 params:
-  CONTEXT: repo
+  CONTEXT: repo/pipeline
 run:
-  path: /build/build
+  path: build

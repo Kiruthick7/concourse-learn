@@ -83,16 +83,16 @@ jobs:
                 cd concourse-learn/
                 npm install
                 npm run build
-          on_success:
-            put: pull-request-status
-            params:
-              path: pull-request
-              status: success
-          on_failure:
-            put: pull-request-status
-            params:
-              path: pull-request
-              status: failure
+        on_success:
+          put: pull-request-status
+          params:
+            path: pull-request
+            status: success
+        on_failure:
+          put: pull-request-status
+          params:
+            path: pull-request
+            status: failure
 
   - name: deploy-pipeline-dev
     plan:

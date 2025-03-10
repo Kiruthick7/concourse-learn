@@ -42,3 +42,4 @@ next-env.d.ts
 
 # files
 service-key.json
+/ci/secrets.yml
