@@ -10,8 +10,9 @@ outputs:
   - name: new-image-info
 run:
   path: sh
-  dir: main
   args:
     - -exc
     - |
+      mkdir -p new-image-info
+      cd main
       git rev-parse --short HEAD > ../new-image-info/git-sha
