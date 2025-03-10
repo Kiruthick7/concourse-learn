@@ -69,7 +69,6 @@ jobs:
               - -exc
               - |
                 ls
-                cd concourse-learn/
                 npm install
                 npm run build
         on_success:
