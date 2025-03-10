@@ -1,0 +1,29 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: alpine
+    tag: latest
+inputs:
+  - name: main
+  - name: new-image-info
+outputs:
+  - name: updated-pipeline
+run:
+  path: sh
+  dir: main
+  args:
+    - -exc
+    - |
+      apk update
+      apk add jq
+      current_image=$(jq -r '.image' pipeline/pipeline.json)
+
+      base_image=$(echo "$current_image" | sed 's/:.*//')
+
+      new_tag=$(cat ../new-image-info/git-sha)
+
+      jq --arg base_image "$base_image" --arg new_tag "$new_tag" \
+        '.image = "\($base_image):\($new_tag)"' pipeline/pipeline.json > ../updated-pipeline/pipeline.json
+      
+      cat ../updated-pipeline/pipeline.json
