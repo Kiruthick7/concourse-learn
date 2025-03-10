@@ -9,7 +9,7 @@ resources:
   - name: main
     type: git
     icon: github
-    check_every: 1m
+    check_every: 24h
     source:
       uri: git@github.com:Kiruthick7/concourse-learn.git
       private_key: ((github_private_key))
@@ -18,7 +18,7 @@ resources:
   - name: pull-request
     type: pull-request
     icon: github
-    check_every: 24h
+    check_every: 1m
     source:
       repository: ((organization))/((repository))
       access_token: ((gthb_access_token))
@@ -38,17 +38,6 @@ resources:
       password: ((gcp_service_key))
 
 jobs:
-  - name: set-pipeline
-    build_log_retention:
-      builds: 45
-    plan:
-      - get: main
-        trigger: true
-      - set_pipeline: ((repository))
-        file: main/ci/pipeline.yml
-        var_files:
-          - main/ci/pipeline-vars.yml
-
   - name: pr-verify
     public: true
     plan:
